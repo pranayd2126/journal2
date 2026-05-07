@@ -1,0 +1,95 @@
+{
+  "entities": {
+    "Trade": {
+      "title": "Trade",
+      "description": "A single trading record with performance and behavioral data.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "symbol": { "type": "string" },
+        "entryPrice": { "type": "number" },
+        "exitPrice": { "type": "number" },
+        "stopLoss": { "type": "number" },
+        "quantity": { "type": "number" },
+        "pnl": { "type": "number" },
+        "riskAmount": { "type": "number" },
+        "riskRewardRatio": { "type": "number" },
+        "setupType": { "type": "string" },
+        "side": { "type": "string", "enum": ["LONG", "SHORT"] },
+        "entryTime": { "type": "string", "format": "date-time" },
+        "exitTime": { "type": "string", "format": "date-time" },
+        "emotionalState": { "type": "string" },
+        "followedPlan": { "type": "boolean" },
+        "followedSL": { "type": "boolean" },
+        "mistakes": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "symbol", "entryPrice", "exitPrice", "quantity", "pnl", "createdAt"]
+    },
+    "DailyChecklist": {
+      "title": "Daily Checklist",
+      "description": "Daily habit tracking and discipline score.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "followedRisk": { "type": "boolean" },
+        "noFOMO": { "type": "boolean" },
+        "waitedForConfirmation": { "type": "boolean" },
+        "avoidedNews": { "type": "boolean" },
+        "plannedTrade": { "type": "boolean" },
+        "disciplineScore": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "date", "disciplineScore"]
+    },
+    "AIInsight": {
+      "title": "AI Insight",
+      "description": "AI-generated feedback for daily or weekly periods.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "type": { "type": "string", "enum": ["DAILY", "WEEKLY"] },
+        "period": { "type": "string" },
+        "content": { "type": "string" },
+        "disciplineScore": { "type": "number" },
+        "topMistakes": { "type": "array", "items": { "type": "string" } },
+        "suggestions": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "type", "period", "content", "createdAt"]
+    },
+    "UserSettings": {
+      "title": "User Settings",
+      "description": "Risk management rules and application preferences.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "dailyLossLimit": { "type": "number" },
+        "singleTradeLossLimit": { "type": "number" },
+        "monthlyLossLimit": { "type": "number" },
+        "riskBaseCurrency": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId"]
+    }
+  },
+  "firestore": {
+    "users/{userId}/trades/{tradeId}": {
+      "schema": "Trade",
+      "description": "The collection of trades for a specific user."
+    },
+    "users/{userId}/checklists/{checklistId}": {
+      "schema": "DailyChecklist",
+      "description": "Daily discipline tracking for a specific user."
+    },
+    "users/{userId}/insights/{insightId}": {
+      "schema": "AIInsight",
+      "description": "AI-generated insights and reports."
+    },
+    "users/{userId}/settings/current": {
+      "schema": "UserSettings",
+      "description": "User-specific risk limits and settings."
+    }
+  }
+}
