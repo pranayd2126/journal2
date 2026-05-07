@@ -1,4 +1,4 @@
-import { MongoClient, ServerApiVersion } from 'mongodb';
+import { MongoClient } from 'mongodb';
 
 let cachedClient: MongoClient | null = null;
 let cachedDb: any = null;
@@ -12,9 +12,7 @@ export async function getDb() {
   }
 
   if (!cachedClient) {
-    cachedClient = new MongoClient(uri, {
-      serverApi: { version: ServerApiVersion.v1, strict: true, deprecationErrors: true }
-    });
+    cachedClient = new MongoClient(uri);
   }
 
   await cachedClient.connect();
