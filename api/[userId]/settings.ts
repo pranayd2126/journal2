@@ -1,0 +1,32 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { getDb } from '../../_db';
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const { userId } = req.query;
+
+  if (!userId || typeof userId !== 'string') {
+    return res.status(400).json({ error: 'userId is required' });
+  }
+
+  const database = await getDb();
+
+  try {
+    if (req.method === 'GET') {
+      const settings = await database.collection('settings').findOne({ userId });
+      return res.json(settings || {});
+    }
+
+    if (req.method === 'POST') {
+      await database.collection('settings').updateOne(
+        { userId },
+        { $set: { ...req.body, userId, updatedAt: new Date() } },
+        { upsert: true }
+      );
+      return res.json({ success: true });
+    }
+
+    return res.status(405).json({ error: 'Method not allowed' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+}
