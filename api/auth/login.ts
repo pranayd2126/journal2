@@ -1,10 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getDb } from '../_db';
-
-const bcrypt = require('bcryptjs');
+import bcrypt from 'bcryptjs';
+import { getDb } from '../_db.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Allow CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -19,7 +17,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const { email, password } = req.body;
-    
+
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
     }
