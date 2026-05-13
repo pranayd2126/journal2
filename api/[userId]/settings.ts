@@ -17,9 +17,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (req.method === 'POST' || req.method === 'PATCH') {
+      const updateData = { ...req.body, userId, updatedAt: new Date() };
+      delete updateData._id;
+      
       await database.collection('settings').updateOne(
         { userId },
-        { $set: { ...req.body, userId, updatedAt: new Date() } },
+        { $set: updateData },
         { upsert: true }
       );
       return res.json({ success: true });

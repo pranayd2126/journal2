@@ -229,9 +229,12 @@ async function startServer() {
   const settingsHandler = async (req: any, res: any) => {
     try {
       const database = await getDb();
+      const updateData = { ...req.body, userId: req.params.userId, updatedAt: new Date() };
+      delete updateData._id;
+      
       await database.collection('settings').updateOne(
         { userId: req.params.userId },
-        { $set: { ...req.body, userId: req.params.userId, updatedAt: new Date() } },
+        { $set: updateData },
         { upsert: true }
       );
       res.json({ success: true });
