@@ -42,16 +42,13 @@ export function useRiskManager(trades: Trade[], settings: UserSettings) {
       isSingleBreached,
       isMonthlyBreached,
       isStreakBreached,
-      isLocked: isDailyBreached || isSingleBreached || isMonthlyBreached || isStreakBreached,
+      isLocked: false, // User requested to remove the risk rules locking
       dailyNet,
       dailyLoss,
       monthlyNet,
       maxSingleLoss,
       consecutiveLosingDays,
-      lockReason: isDailyBreached ? "Daily Loss Limit Reached" :
-                  isSingleBreached ? "Max Single Trade Loss Reached" :
-                  isMonthlyBreached ? "Monthly Drawdown Limit Reached" :
-                  isStreakBreached ? "3 Consecutive Losing Days Lock" : null
+      lockReason: null // Disabled lock reason
     };
   }, [trades, settings]);
 
