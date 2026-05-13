@@ -71,14 +71,18 @@ export default function TradeJournal({ trades, onTradeAdded, onTradeUpdated, onT
     if (!file) return;
 
     setIsUploading(true);
-    const uploadData = new FormData();
-    uploadData.append('image', file);
 
-    try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: uploadData,
-      });
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onloadend = async () => {
+      const base64data = reader.result;
+
+      try {
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: base64data }),
+        });
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -96,6 +100,12 @@ export default function TradeJournal({ trades, onTradeAdded, onTradeUpdated, onT
       setIsUploading(false);
     }
   };
+
+  reader.onerror = () => {
+    console.error('Failed to read file');
+    setIsUploading(false);
+  };
+};
 
   const livePnl = useMemo(() => {
     const entry = parseFloat(formData.entryPrice);

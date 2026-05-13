@@ -8,6 +8,7 @@ import { format, parseISO } from 'date-fns';
 import { Flame, Target, TrendingUp, ShieldAlert, Percent, Activity, Wallet, Edit2, X, Check } from 'lucide-react';
 import { useRiskManager } from '../hooks/useRiskManager';
 import { dbService } from '../services/dbService';
+import CalendarHeatmap from './CalendarHeatmap';
 
 interface DashboardProps {
   trades: Trade[];
@@ -227,6 +228,13 @@ export default function Dashboard({ trades, settings, onSettingsUpdate }: Dashbo
             Base: ₹{(settings.totalCapital ?? 100000).toLocaleString()}
           </p>
         </div>
+      </div>
+
+      {/* Calendar Heatmap Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <CalendarHeatmap trades={trades} initialOffset={0} />
+        <CalendarHeatmap trades={trades} initialOffset={1} />
+        <CalendarHeatmap trades={trades} initialOffset={2} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

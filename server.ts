@@ -56,7 +56,8 @@ async function startServer() {
   const PORT = 3000;
 
   app.use(cors());
-  app.use(express.json());
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
   // Health check - Verify API is alive
   app.get('/api/health', (req, res) => {
@@ -177,15 +178,15 @@ async function startServer() {
   });
 
   // Image Upload to Cloudinary
-  app.post('/api/upload', upload.single('image'), async (req: any, res: any) => {
+  app.post('/api/upload', async (req: any, res: any) => {
     console.log('--- Upload Request Received ---');
     try {
-      if (!req.file) {
-        return res.status(400).json({ error: 'No file uploaded' });
+      const { image } = req.body;
+      if (!image) {
+        return res.status(400).json({ error: 'No image data provided' });
       }
-      const b64 = Buffer.from(req.file.buffer).toString('base64');
-      const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
-      const result = await cloudinary.uploader.upload(dataURI, {
+      
+      const result = await cloudinary.uploader.upload(image, {
         folder: 'trading_journal_trades',
         resource_type: 'auto'
       });
@@ -225,7 +226,7 @@ async function startServer() {
     }
   });
 
-  app.post('/api/:userId/settings', async (req, res) => {
+  const settingsHandler = async (req: any, res: any) => {
     try {
       const database = await getDb();
       await database.collection('settings').updateOne(
@@ -237,7 +238,10 @@ async function startServer() {
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
-  });
+  };
+
+  app.post('/api/:userId/settings', settingsHandler);
+  app.patch('/api/:userId/settings', settingsHandler);
 
   // Insights Management
   app.get('/api/:userId/insights', async (req, res) => {

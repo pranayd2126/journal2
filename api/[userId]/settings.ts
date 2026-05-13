@@ -16,7 +16,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.json(settings || {});
     }
 
-    if (req.method === 'POST') {
+    if (req.method === 'POST' || req.method === 'PATCH') {
       await database.collection('settings').updateOne(
         { userId },
         { $set: { ...req.body, userId, updatedAt: new Date() } },
