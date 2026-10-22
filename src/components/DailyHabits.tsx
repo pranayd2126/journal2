@@ -1,14 +1,17 @@
+import { dayKey } from '../lib/tradingAnalytics';
 import { useState, useEffect } from 'react';
 import { dbService } from '../services/dbService';
 import { DailyChecklist } from '../types';
 import { format } from 'date-fns';
 import { Check, ShieldCheck, Zap, Newspaper, CalendarCheck } from 'lucide-react';
 
-export default function DailyHabits() {
+export default function DailyHabits({date}: {date?: string}) {
   const [checklist, setChecklist] = useState<DailyChecklist | null>(null);
+  const [error,setError] = useState('');
+  const [saving,setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const today = format(new Date(), 'yyyy-MM-dd');
+  const today = date ?? dayKey(new Date());
 
   useEffect(() => {
     const user = dbService.getCurrentUser();
@@ -19,13 +22,15 @@ export default function DailyHabits() {
         if (todayData) setChecklist(todayData);
         setLoading(false);
       };
-      fetchChecklist();
+      fetchChecklist().catch(e=>{setError(e.message);setLoading(false);});
     }
-  }, []);
+  }, [today]);
 
   const toggleHabit = async (key: keyof Omit<DailyChecklist, 'id' | 'userId' | 'date' | 'disciplineScore' | 'createdAt'>) => {
     const user = dbService.getCurrentUser();
-    if (!user) return;
+    if (!user || saving) return;
+    setSaving(true); setError('');
+    try {
 
     const updated = checklist ? { ...checklist, [key]: !checklist[key] } : {
       userId: user.id,
@@ -51,6 +56,7 @@ export default function DailyHabits() {
       const id = await dbService.addDocument(`users/${user.id}/checklists`, updated);
       setChecklist({ ...updated, id });
     }
+    } catch(e) { setError(e instanceof Error ? e.message : "Could not save habit"); } finally { setSaving(false); }
   };
 
   if (loading) return null;
@@ -65,6 +71,7 @@ export default function DailyHabits() {
 
   return (
     <div className="bg-zinc-950 border border-zinc-900 rounded-2xl p-6 space-y-6">
+      {error && <p role="alert" className="text-red-400">{error}</p>}
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-widest">Daily Discipline Tracker</h3>
         <div className="px-3 py-1 bg-blue-600/10 text-blue-500 rounded-full text-xs font-bold border border-blue-500/20">
@@ -78,6 +85,7 @@ export default function DailyHabits() {
           const isChecked = checklist?.[habit.key] || false;
           return (
             <button
+              disabled={saving}
               key={habit.key}
               onClick={() => toggleHabit(habit.key)}
               className={`flex items-center justify-between p-3 rounded-xl border transition-all ${

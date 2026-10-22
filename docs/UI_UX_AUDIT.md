@@ -1,0 +1,13 @@
+# UI/UX audit and direction
+
+Baseline inspected from source and prior browser screenshots: narrow icon rail hides navigation names; logout profile formerly overflowed; header add action needs a second click; oversized all-chart homepage; daily habits/password controls occupy inconsistent sidebar boxes; dots communicate calendar outcome only on hover; four-step entry asks for optional data before saving; review workflow missing. Analytics controls and data definitions are sound but dense. Card detail modal lacks a native focus trap. Full-history list rendering is unbounded.
+
+Direction: quiet deep-slate canvas, slightly raised panels, teal primary actions, blue analytical series, signed emerald/red outcomes, muted readable secondary text. System-font stack avoids network-dependent rendering. Consistent 16–24px panel spacing, 12px field radius, 16px cards, visible focus ring and 44px touch controls. Title/subtitle/action headers replace decorative oversized text. Desktop labeled sidebar collapses; mobile uses a labeled section picker. Homepage answers performance, risk and pending reviews; advanced comparisons stay in Analytics.
+
+Use native dialog for new workflows to get Escape, focus containment and focus restoration; preserve legacy trade detail while improving it. Charts have contextual descriptions and source tables. Reduced motion disables transitions/animations. No WCAG certification claim; keyboard and responsive flows tested, exhaustive assistive-technology audit remains outside local coverage.
+
+## Implemented and verified in v2
+
+New shell, quick entry, manual reviews, period notebook, settings/plan, signed calendar and source tables are functional components, not static mockups. Desktop (1440px), tablet (820px) and mobile (390px) automated flows cover the main routes. Chromium, Firefox and mobile WebKit are exercised. Native modal keyboard opening, Escape and return of focus are tested; notebook navigation cancellation is tested. Desktop overview and mobile calendar screenshots were visually inspected during refinement. Mobile numeric calendar cells remain compact, with full date/result in their accessible label.
+
+The detailed four-step editor and some analytical cards retain legacy structure/styles to preserve their specialized controls. The new shared palette wraps these surfaces; complete component consolidation remains partial. No physical-device, full screen-reader or exhaustive WCAG audit was performed. API fetches still load full history; client pagination bounds rendered management/source rows but is not server pagination. Review queue and notebook history are deliberately bounded. Bundle chunks remain substantial. These limits are reflected in completion scoring.
