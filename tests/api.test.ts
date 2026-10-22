@@ -4,6 +4,7 @@ import { beforeAll, afterAll, it, expect, vi } from "vitest";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import { MongoClient, ObjectId } from "mongodb";
 import { makeHandler } from "../server/handler";
+import { makeVercelHandler } from "../server/vercelHandler";
 import { hash } from "../server/security";
 let mongo: MongoMemoryServer, client: MongoClient, db: any, handler: any;
 async function call(
@@ -17,7 +18,7 @@ async function call(
     data: any,
     head: any = {};
   const req = {
-    url: "/api/" + path,
+    url: "/api?__route=" + encodeURIComponent(path),
     method,
     body,
     headers: {
@@ -75,7 +76,7 @@ beforeAll(async () => {
       partialFilterExpression: { submissionId: { $type: "string" } },
     },
   );
-  handler = makeHandler(async () => db);
+  handler = makeVercelHandler(makeHandler(async () => db));
 });
 afterAll(async () => {
   await client?.close();

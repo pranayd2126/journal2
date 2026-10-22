@@ -21,15 +21,13 @@ export async function getDb(): Promise<Db> {
           .collection("rateLimits")
           .createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
         db.collection("trades").createIndex({ userId: 1, exitTime: 1 }),
-        db
-          .collection("trades")
-          .createIndex(
-            { userId: 1, submissionId: 1 },
-            {
-              unique: true,
-              partialFilterExpression: { submissionId: { $type: "string" } },
-            },
-          ),
+        db.collection("trades").createIndex(
+          { userId: 1, submissionId: 1 },
+          {
+            unique: true,
+            partialFilterExpression: { submissionId: { $type: "string" } },
+          },
+        ),
         ...["settings", "checklists", "insights", "notebook"].map((c) =>
           db.collection(c).createIndex({ userId: 1 }),
         ),

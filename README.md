@@ -36,7 +36,7 @@ npm audit
 1. Back up MongoDB. Inspect duplicate normalized emails, checklist dates and any existing submission IDs. Test new indexes on a disposable copy; see docs/SECURITY_AUDIT.md.
 2. Set MONGODB_URI, MONGODB_DB, APP_ORIGIN to the exact HTTPS deployment origin, and optional Cloudinary credentials. Leave AI_ENABLED false until authorized. Never use VITE_ prefixes for secrets.
 3. For Express, build then run `NODE_ENV=production npm start` behind a trusted HTTPS reverse proxy. Server binds loopback; configure PORT as needed. Confirm proxy IP handling before changing trust settings.
-4. For Vercel, use the existing Vite build and API wrappers. Verify Node runtime, sharp packaging, route paths, request limits, MongoDB reachability and headers in staging. Vercel deployment itself has not been tested.
+4. For Vercel, use the existing Vite build and single `api/index.ts` function with the configured API rewrite. Keep server helpers outside `api/` to stay within function limits. Verify Node runtime, sharp packaging, route paths, request limits, MongoDB reachability and headers in staging. Vercel deployment itself has not been tested.
 5. Test two-account isolation, cookie Secure/HttpOnly flags, signup/login/logout/password change, trade CRUD, settings/habits, real image upload/delivery and failure states. Inspect existing public media exposure separately.
 6. Obtain owner approval before pushing or deploying. No destructive migration or automatic recalculation of historical P&L is included.
 
@@ -47,3 +47,5 @@ See [implementation plan](docs/IMPLEMENTATION_PLAN.md), [feature audit](docs/FEA
 Quick entry, manual trade reviews, daily/weekly/monthly notebook, signed calendar, reusable trading plan, review goal and relevant preferences are now available. All realized summaries remain INR/IST. Optional assessments are explicitly recorded rather than inferred from untouched form defaults.
 
 See [v2 research](docs/COMPETITOR_FEATURE_RESEARCH.md), [gap analysis](docs/FEATURE_GAP_ANALYSIS.md), [UI audit](docs/UI_UX_AUDIT.md), [v2 plan](docs/IMPLEMENTATION_PLAN_V2.md), [v2 test report and completion ledger](docs/TEST_REPORT_V2.md), and [v2 changelog](docs/CHANGELOG_V2.md). V1 reports remain historical snapshots; v2 reporting supersedes their browser/UI limitations where specifically verified.
+
+See [Vercel function-limit fix](docs/VERCEL_DEPLOYMENT_FIX.md) for the PR #1 preview failure and routing verification.

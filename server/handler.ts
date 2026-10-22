@@ -4,7 +4,7 @@ import { ObjectId, type Db } from "mongodb";
 import { createHash } from "node:crypto";
 import sharp from "sharp";
 import { v2 as cloudinary } from "cloudinary";
-import { getDb } from "../api/_db.js";
+import { getDb } from "./db.js";
 import { calculatedPnl } from "../src/lib/tradingAnalytics.js";
 import {
   authenticate,
