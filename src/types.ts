@@ -1,8 +1,24 @@
-export type EmotionalState = 'CALM' | 'EXCITED' | 'ANXIOUS' | 'ANGRY' | 'TIRED' | 'CONFIDENT' | 'FEAR' | 'REVENGE' | 'FOMO';
+export type EmotionalState =
+  | "CALM"
+  | "EXCITED"
+  | "ANXIOUS"
+  | "ANGRY"
+  | "TIRED"
+  | "CONFIDENT"
+  | "FEAR"
+  | "REVENGE"
+  | "FOMO";
 
 export interface Trade {
   id?: string;
+  version?: number;
   userId: string;
+  status?: "OPEN" | "CLOSED" | "PARTIAL";
+  multiplier?: number;
+  charges?: number;
+  initialRisk?: number;
+  pnlSource?: string;
+  review?: TradeReview;
   symbol: string;
   entryPrice: number;
   exitPrice: number;
@@ -15,19 +31,20 @@ export interface Trade {
   tags?: string[];
   riskPercentage?: number;
   setupType: string;
-  side: 'LONG' | 'SHORT';
+  side: "LONG" | "SHORT";
   entryTime: string;
   exitTime: string;
-  
+
   // Professional Context
   tradeReason?: string;
-  marketCondition?: 'TRENDING_UP' | 'TRENDING_DOWN' | 'SIDEWAYS' | 'CHOPPY' | 'VOLATILE';
+  marketCondition?:
+    "TRENDING_UP" | "TRENDING_DOWN" | "SIDEWAYS" | "CHOPPY" | "VOLATILE";
   confirmations?: string[];
-  
+
   // Execution Quality
   executionQuality: {
-    entry: 'EARLY' | 'PERFECT' | 'LATE';
-    exit: 'EARLY' | 'PERFECT' | 'LATE';
+    entry: "EARLY" | "PERFECT" | "LATE";
+    exit: "EARLY" | "PERFECT" | "LATE";
     followedSL: boolean;
     followedPlan: boolean;
     respectedRR: boolean;
@@ -45,8 +62,8 @@ export interface Trade {
 
   // Market Context
   marketContext: {
-    overallTrend: 'BULLISH' | 'BEARISH' | 'NEUTRAL';
-    volatility: 'LOW' | 'HIGH' | 'MEDIUM';
+    overallTrend: "BULLISH" | "BEARISH" | "NEUTRAL";
+    volatility: "LOW" | "HIGH" | "MEDIUM";
     newsEvent: boolean;
   };
 
@@ -70,7 +87,7 @@ export interface DailyChecklist {
 export interface AIInsight {
   id?: string;
   userId: string;
-  type: 'DAILY' | 'WEEKLY';
+  type: "DAILY" | "WEEKLY";
   period: string; // '2024-03-20' or '2024-W12'
   content: string;
   disciplineScore?: number;
@@ -80,7 +97,21 @@ export interface AIInsight {
 }
 
 export interface UserSettings {
+  defaultRange?: "all" | "30d" | "month";
+  compactRows?: boolean;
+  welcomeDismissed?: boolean;
+  reviewTarget?: number;
+  tradingPlan?: {
+    strategy: string;
+    entry: string;
+    exit: string;
+    rules: string;
+    focus: string;
+  };
   userId: string;
+  maxTradesPerDay?: number;
+  maxConsecutiveLosses?: number;
+  maxRiskPerTrade?: number;
   dailyLossLimit: number;
   singleTradeLossLimit: number;
   monthlyLossLimit: number;
@@ -90,12 +121,12 @@ export interface UserSettings {
 }
 
 export enum OperationType {
-  CREATE = 'create',
-  UPDATE = 'update',
-  DELETE = 'delete',
-  LIST = 'list',
-  GET = 'get',
-  WRITE = 'write',
+  CREATE = "create",
+  UPDATE = "update",
+  DELETE = "delete",
+  LIST = "list",
+  GET = "get",
+  WRITE = "write",
 }
 
 export interface FirestoreErrorInfo {
@@ -107,5 +138,25 @@ export interface FirestoreErrorInfo {
     email?: string | null;
     emailVerified?: boolean | null;
     isAnonymous?: boolean | null;
-  }
+  };
+}
+
+export interface TradeReview {
+  status: "PENDING" | "REVIEWED";
+  rating?: number;
+  wentWell: string;
+  improve: string;
+  lesson: string;
+}
+export interface NotebookEntry {
+  id?: string;
+  version?: number;
+  userId?: string;
+  kind: "DAY" | "WEEK" | "MONTH";
+  period: string;
+  notes: string;
+  observations: string;
+  lesson: string;
+  focus: string;
+  reviewed: boolean;
 }

@@ -1,3 +1,4 @@
+import { analytics, groupTrades, displayRatio } from '../lib/tradingAnalytics';
 import { ReactNode, useMemo, useState } from 'react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
@@ -22,89 +23,12 @@ export default function Dashboard({ trades, settings, onSettingsUpdate }: Dashbo
   const [tempCapital, setTempCapital] = useState((settings.totalCapital ?? 100000).toString());
 
   const stats = useMemo(() => {
-    const totalPnl = trades.reduce((acc, t) => acc + t.pnl, 0);
-    const winRate = trades.length > 0 ? (trades.filter(t => t.pnl > 0).length / trades.length) * 100 : 0;
-    const avgWin = trades.filter(t => t.pnl > 0).reduce((acc, t) => acc + t.pnl, 0) / (trades.filter(t => t.pnl > 0).length || 1);
-    const avgLoss = trades.filter(t => t.pnl < 0).reduce((acc, t) => acc + Math.abs(t.pnl), 0) / (trades.filter(t => t.pnl < 0).length || 1);
-    const profitFactor = (avgWin * (winRate / 100)) / (avgLoss * (1 - winRate / 100)) || 0;
-    
-    // Performance items for charts
-    const pnlHistory = trades.slice().reverse().reduce((acc: any[], trade) => {
-      const prevTotal = acc.length > 0 ? acc[acc.length - 1].cumulative : 0;
-      let dateStr = 'Unknown';
-      try {
-        if (trade.entryTime) {
-          const date = parseISO(trade.entryTime);
-          if (!isNaN(date.getTime())) {
-            dateStr = format(date, 'MMM dd');
-          }
-        }
-      } catch (e) {
-        console.error('Invalid date for trade:', trade);
-      }
-      
-      acc.push({
-        date: dateStr,
-        pnl: trade.pnl,
-        cumulative: prevTotal + trade.pnl
-      });
-      return acc;
-    }, []);
-
-    // Mistakes frequency
-    const mistakeCounts: Record<string, number> = {};
-    trades.forEach(t => {
-      if (t.mistakes && Array.isArray(t.mistakes)) {
-        t.mistakes.forEach(m => mistakeCounts[m] = (mistakeCounts[m] || 0) + 1);
-      }
-    });
-    const mistakesData = Object.entries(mistakeCounts).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
-
-    // Emotion vs PNL
-    const emotionData: Record<string, { pnl: number, count: number }> = {};
-    trades.forEach(t => {
-      const state = t.psychology?.before || 'CALM';
-      if (!emotionData[state]) emotionData[state] = { pnl: 0, count: 0 };
-      emotionData[state].pnl += t.pnl;
-      emotionData[state].count += 1;
-    });
-    const emotionHeatmap = Object.entries(emotionData).map(([name, val]) => ({
-      name,
-      avgPnl: Math.round(val.pnl / val.count),
-      count: val.count,
-      fill: (val.pnl / val.count) >= 0 ? '#10b981' : '#ef4444'
-    }));
-
-    // Setup Type Performance
-    const setupPerf: Record<string, { pnl: number, count: number }> = {};
-    trades.forEach(t => {
-      const type = t.setupType || 'UNTAGGED';
-      if (!setupPerf[type]) setupPerf[type] = { pnl: 0, count: 0 };
-      setupPerf[type].pnl += t.pnl;
-      setupPerf[type].count += 1;
-    });
-    const setupData = Object.entries(setupPerf).map(([name, val]) => ({
-      name,
-      pnl: val.pnl,
-      avg: Math.round(val.pnl / val.count)
-    })).sort((a, b) => b.pnl - a.pnl);
-
-    const winData = [
-      { name: 'Wins', value: trades.filter(t => t.pnl > 0).length, fill: '#10b981' },
-      { name: 'Losses', value: trades.filter(t => t.pnl <= 0).length, fill: '#ef4444' }
-    ];
-
-    return {
-      totalPnl,
-      winRate,
-      profitFactor,
-      pnlHistory,
-      mistakesData,
-      emotionHeatmap,
-      setupData,
-      winData,
-      totalTrades: trades.length
-    };
+    const a = analytics(trades);
+    const mistakesData = [...new Set(trades.flatMap(t=>t.mistakes??[]))].map(name=>({name,value:trades.filter(t=>t.mistakes?.includes(name)).length}));
+    return { ...a, totalTrades:a.count, pnlHistory:a.equityCurve, mistakesData,
+      emotionHeatmap:groupTrades(trades,t=>t.psychology?.before).map(r=>({...r,avgPnl:r.expectancy,fill:r.totalPnl>=0?'#10b981':'#ef4444'})),
+      setupData:a.strategies.map(r=>({...r,pnl:r.totalPnl,avg:r.expectancy})),
+      winData:[{name:'Wins',value:a.wins,fill:'#10b981'},{name:'Losses',value:a.losses,fill:'#ef4444'},{name:'Breakeven',value:a.breakevens,fill:'#a1a1aa'}] };
   }, [trades]);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -231,15 +155,12 @@ export default function Dashboard({ trades, settings, onSettingsUpdate }: Dashbo
       </div>
 
       {/* Calendar Heatmap Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <CalendarHeatmap trades={trades} initialOffset={0} />
-        <CalendarHeatmap trades={trades} initialOffset={1} />
-        <CalendarHeatmap trades={trades} initialOffset={2} />
-      </div>
+      {stats.count === 0 ? <div className="p-8 bg-zinc-950 rounded-2xl text-zinc-400">No closed trades yet. Add a trade in the Journal to see performance charts.</div> : <>
+      <CalendarHeatmap trades={trades} initialOffset={0} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Equity Curve */}
-        <ChartWrapper title="Cumulative Growth (Equity Curve)" className="lg:col-span-2">
+        <ChartWrapper title="Cumulative Realized Net P&L" className="lg:col-span-2">
           <div className="h-[350px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={stats.pnlHistory}>
@@ -256,7 +177,7 @@ export default function Dashboard({ trades, settings, onSettingsUpdate }: Dashbo
                 <Area 
                   type="stepAfter" 
                   dataKey="cumulative" 
-                  name="Account Value"
+                  name="Cumulative realized P&L"
                   stroke="#3b82f6" 
                   fillOpacity={1} 
                   fill="url(#colorPnl)" 
@@ -362,7 +283,7 @@ export default function Dashboard({ trades, settings, onSettingsUpdate }: Dashbo
             <Flame className="w-10 h-10 text-blue-500" />
           </div>
           <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">Profit Factor</h4>
-          <p className="text-4xl font-mono font-bold text-white mb-2">{stats.profitFactor.toFixed(2)}</p>
+          <p className="text-4xl font-mono font-bold text-white mb-2">{displayRatio(stats.profitFactor, stats.noLosses)}</p>
           <div className="w-full bg-zinc-900 h-1.5 rounded-full overflow-hidden mt-4">
             <div 
               className={`h-full transition-all duration-1000 ${stats.profitFactor > 2 ? 'bg-emerald-500' : stats.profitFactor > 1 ? 'bg-blue-500' : 'bg-red-500'}`}
@@ -370,10 +291,11 @@ export default function Dashboard({ trades, settings, onSettingsUpdate }: Dashbo
             />
           </div>
           <p className="text-[10px] text-zinc-600 font-bold uppercase mt-4">
-            {stats.profitFactor > 1.5 ? 'EXCELLENT EDGE' : stats.profitFactor >= 1 ? 'PROFITABLE' : 'UNPROFITABLE'}
+            {stats.profitFactor === null ? 'INSUFFICIENT LOSS DATA' : 'BASED ON RECORDED CLOSED TRADES'}
           </p>
         </div>
       </div>
+      </>}
     </div>
   );
 }
